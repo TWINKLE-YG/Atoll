@@ -523,6 +523,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         return true
     }
+
+    private func applyLowResourceDefaultsIfNeeded() {
+        guard Defaults[.lowResourceMode] else { return }
+        if Defaults[.codexActiveRefreshInterval] < 3 {
+            Defaults[.codexActiveRefreshInterval] = 3
+        }
+        if Defaults[.codexIdleRefreshInterval] < 20 {
+            Defaults[.codexIdleRefreshInterval] = 20
+        }
+        if Defaults[.feishuPollInterval] < 8 {
+            Defaults[.feishuPollInterval] = 8
+        }
+    }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         let userInfo: [String: Any] = [
@@ -546,6 +559,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Defaults.Keys.migrateMusicControlSlots()
         Defaults.Keys.migrateCapsLockTintMode()
         Defaults.Keys.migrateThirdPartyDDCIntegration()
+        applyLowResourceDefaultsIfNeeded()
 
         Defaults.publisher(.enableThirdPartyDDCIntegration, options: [])
             .sink { _ in
@@ -746,6 +760,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Defaults.publisher(.enableClipboardManager, options: []).sink { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.updateFeatureShortcutAvailability()
+            }
+        }.store(in: &cancellables)
+
+        Defaults.publisher(.lowResourceMode, options: []).sink { _ in
+            self.applyLowResourceDefaultsIfNeeded()
+            if Defaults[.enableCodexFeature] {
+                CodexManager.shared.stop()
+                CodexManager.shared.start()
+            }
+            if Defaults[.enableFeishuNotifications] {
+                FeishuNotificationManager.shared.stop()
+                FeishuNotificationManager.shared.start()
+            }
+            if ClipboardManager.shared.isMonitoring {
+                ClipboardManager.shared.stopMonitoring()
+                ClipboardManager.shared.startMonitoring()
             }
         }.store(in: &cancellables)
 

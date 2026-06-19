@@ -7409,6 +7409,11 @@ struct ClipboardSettings: View {
 
             if enableClipboardManager {
                 Section {
+                    Defaults.Toggle(key: .lowResourceMode) {
+                        Text("低资源模式")
+                    }
+                    .settingsHighlight(id: highlightID("低资源模式"))
+
                     Defaults.Toggle(key: .showClipboardIcon) {
                         Text("Show Clipboard Icon")
                     }
@@ -7466,11 +7471,11 @@ struct ClipboardSettings: View {
                 } footer: {
                     switch clipboardDisplayMode {
                     case .popover:
-                        Text("Popover mode shows clipboard as a dropdown attached to the clipboard button.")
+                        Text("弹出模式会把剪贴板显示为附着在按钮上的下拉视图。低资源模式会降低剪贴板检查频率，减少 CPU 唤醒。")
                     case .panel:
-                        Text("Panel mode shows clipboard in a floating window near the notch.")
+                        Text("面板模式会在刘海附近显示浮动窗口。低资源模式会降低剪贴板检查频率，减少 CPU 唤醒。")
                     case .separateTab:
-                        Text("Separate Tab mode integrates Copied Items and Notes into a single view. If both are enabled, Notes appear on the right and Clipboard on the left.")
+                        Text("独立标签模式会把已复制内容和笔记整合到同一个视图。低资源模式会降低剪贴板检查频率，减少 CPU 唤醒。")
                     }
                 }
 

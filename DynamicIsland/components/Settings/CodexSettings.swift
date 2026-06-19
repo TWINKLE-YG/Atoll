@@ -99,8 +99,22 @@ struct CodexSettings: View {
                 }
             } header: {
                 Text("刷新频率")
+            } footer: {
+                Text("开启低资源模式后，Codex 工作中最快三秒刷新一次，空闲时最少间隔二十秒。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             .disabled(!enableCodexFeature)
+
+            Section {
+                Defaults.Toggle(key: .lowResourceMode) {
+                    Text("低资源模式")
+                }
+            } footer: {
+                Text("降低后台轮询频率，减少 CPU 唤醒和电量消耗。Codex 活跃状态仍会保持较快刷新。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             Section {
                 LabeledContent("状态来源") {
@@ -154,7 +168,7 @@ struct CodexSettings: View {
             } header: {
                 Text("反馈日志")
             } footer: {
-                Text("开启后，Atoll 会记录 Codex 状态判断原因。复现问题后，把这个日志文件发回来即可分析。")
+                Text("开启后，\(Bundle.main.displayName) 会记录 Codex 状态判断原因。复现问题后，把这个日志文件发回来即可分析。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

@@ -164,8 +164,11 @@ final class AmazonMusicController: ObservableObject, MediaControllerProtocol {
         process.standardError = stderrPipe
         stderrPipe.fileHandleForReading.readabilityHandler = { handle in
             let data = handle.availableData
-            guard !data.isEmpty,
-                  let message = String(data: data, encoding: .utf8)?
+            guard !data.isEmpty else {
+                handle.readabilityHandler = nil
+                return
+            }
+            guard let message = String(data: data, encoding: .utf8)?
                     .trimmingCharacters(in: .whitespacesAndNewlines),
                   !message.isEmpty
             else { return }

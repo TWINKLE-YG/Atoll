@@ -46,7 +46,7 @@ final class FeishuNotificationManager: ObservableObject {
             guard let self else { return }
             while !Task.isCancelled {
                 await self.refreshOnce()
-                try? await Task.sleep(for: .seconds(max(1, Defaults[.feishuPollInterval])))
+                try? await Task.sleep(for: .seconds(self.nextPollInterval()))
             }
         }
     }
@@ -86,6 +86,19 @@ final class FeishuNotificationManager: ObservableObject {
         status.hasMention = false
         status.unreadCount = 0
         FeishuDebugLogger.log("用户清空飞书提醒")
+    }
+
+    private func nextPollInterval() -> TimeInterval {
+        let configured = Defaults[.feishuPollInterval]
+        let minimum = Defaults[.lowResourceMode] ? 8.0 : 1.0
+        switch status.availability {
+        case .permissionRequired, .error:
+            return max(30.0, configured)
+        case .idle:
+            return max(15.0, configured)
+        case .available:
+            return max(minimum, configured)
+        }
     }
 
     private func classify(records: [LocalNotificationRecord]) -> FeishuNotificationEvent? {

@@ -1131,6 +1131,9 @@ extension Defaults.Keys {
     static let reminderLeadTime = Key<Int>("reminderLeadTime", default: 5)
     static let reminderSneakPeekDuration = Key<Double>("reminderSneakPeekDuration", default: 5)
     static let timerControlWindowEnabled = Key<Bool>("timerControlWindowEnabled", default: true)
+
+    // MARK: Performance
+    static let lowResourceMode = Key<Bool>("lowResourceMode", default: true)
     
     // MARK: ColorPicker Feature
     static let enableColorPickerFeature = Key<Bool>("enableColorPickerFeature", default: true)
@@ -1161,7 +1164,7 @@ extension Defaults.Keys {
     static let enableCodexFeature = Key<Bool>("enableCodexFeature", default: false)
     static let codexPrivacyMode = Key<CodexPrivacyMode>("codexPrivacyMode", default: .summary)
     static let codexActiveRefreshInterval = Key<Double>("codexActiveRefreshInterval", default: 2.0)
-    static let codexIdleRefreshInterval = Key<Double>("codexIdleRefreshInterval", default: 10.0)
+    static let codexIdleRefreshInterval = Key<Double>("codexIdleRefreshInterval", default: 20.0)
     static let codexShowWaitingAlerts = Key<Bool>("codexShowWaitingAlerts", default: true)
     static let codexShowDoneAlerts = Key<Bool>("codexShowDoneAlerts", default: true)
     static let codexShowErrorAlerts = Key<Bool>("codexShowErrorAlerts", default: true)
@@ -1173,7 +1176,7 @@ extension Defaults.Keys {
     // MARK: Feishu Notifications
     static let enableFeishuNotifications = Key<Bool>("enableFeishuNotifications", default: false)
     static let feishuAlwaysShowTab = Key<Bool>("feishuAlwaysShowTab", default: false)
-    static let feishuPollInterval = Key<Double>("feishuPollInterval", default: 3.0)
+    static let feishuPollInterval = Key<Double>("feishuPollInterval", default: 8.0)
     static let feishuMentionKeywords = Key<String>("feishuMentionKeywords", default: "@你\n提到了你\nmention")
     static let feishuDirectMessageKeywords = Key<String>("feishuDirectMessageKeywords", default: "私聊\n发来消息\nsent you")
     static let feishuAllowedSenderKeywords = Key<String>("feishuAllowedSenderKeywords", default: "")

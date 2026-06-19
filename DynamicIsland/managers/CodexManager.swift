@@ -58,10 +58,7 @@ final class CodexManager: ObservableObject {
             guard let self else { return }
             while !Task.isCancelled {
                 await self.refreshOnce()
-                let interval = self.status.state.isActive
-                    ? Defaults[.codexActiveRefreshInterval]
-                    : Defaults[.codexIdleRefreshInterval]
-                try? await Task.sleep(for: .seconds(max(1, interval)))
+                try? await Task.sleep(for: .seconds(self.nextRefreshInterval()))
             }
         }
     }
@@ -79,6 +76,16 @@ final class CodexManager: ObservableObject {
         let next = await provider.currentThreadStatus()
         CodexDebugLogger.log("刷新状态 previous=\(previous.state.rawValue) next=\(next.state.rawValue) availability=\(next.sourceAvailability.label) title=\(next.displayTitle)")
         apply(next, previous: previous)
+    }
+
+    private func nextRefreshInterval() -> TimeInterval {
+        let configured = status.state.isActive
+            ? Defaults[.codexActiveRefreshInterval]
+            : Defaults[.codexIdleRefreshInterval]
+        let minimum = Defaults[.lowResourceMode]
+            ? (status.state.isActive ? 3.0 : 20.0)
+            : 1.0
+        return max(minimum, configured)
     }
 
     private func apply(_ next: CodexThreadStatus, previous: CodexThreadStatus) {

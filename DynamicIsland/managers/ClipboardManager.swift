@@ -217,7 +217,8 @@ class ClipboardManager: ObservableObject {
         guard !isMonitoring else { return }
         
         isMonitoring = true
-        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        let interval: TimeInterval = Defaults[.lowResourceMode] ? 2.0 : 1.0
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             self?.checkClipboard()
         }
     }

@@ -51,14 +51,21 @@ struct FeishuSettings: View {
             }
 
             Section {
-                Stepper(value: $pollInterval, in: 1...15, step: 1) {
+                Stepper(value: $pollInterval, in: 3...30, step: 1) {
                     Text("检查间隔：\(Int(pollInterval)) 秒")
+                }
+                Defaults.Toggle(key: .lowResourceMode) {
+                    Text("低资源模式")
                 }
                 Stepper(value: $priorityQueueLimit, in: 1...6, step: 1) {
                     Text("灵动岛队列：最近 \(priorityQueueLimit) 条")
                 }
             } header: {
                 Text("刷新")
+            } footer: {
+                Text("低资源模式会把飞书监听的最小间隔限制在 8 秒；权限不足或异常时自动退避到至少 30 秒，避免持续消耗资源。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             .disabled(!enableFeishuNotifications)
 
