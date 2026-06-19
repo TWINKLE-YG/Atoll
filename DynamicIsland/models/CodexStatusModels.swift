@@ -90,7 +90,7 @@ enum CodexSourceAvailability: Equatable, Codable {
         case .codexNotRunning:
             return String(localized: "打开 Codex 桌面 App 后即可显示当前线程状态。")
         case .permissionDenied:
-            return String(localized: "Atoll 当前权限不足，无法读取 Codex 状态。")
+            return String(localized: "\(Bundle.main.displayName) 当前权限不足，无法读取 Codex 状态。")
         case .unsupported:
             return String(localized: "尚未配置稳定的 Codex 本机状态来源。")
         case .error(let message):
@@ -318,13 +318,13 @@ struct CodexThreadStatus: Equatable, Codable {
             return CodexHealthReport(
                 level: .warning,
                 title: String(localized: "Codex 未运行"),
-                detail: String(localized: "启动 Codex 后，Atoll 才能读取当前线程。")
+                detail: String(localized: "启动 Codex 后，\(Bundle.main.displayName) 才能读取当前线程。")
             )
         case .permissionDenied:
             return CodexHealthReport(
                 level: .broken,
                 title: String(localized: "读取权限不足"),
-                detail: String(localized: "Atoll 当前无法读取 Codex 本机状态。")
+                detail: String(localized: "\(Bundle.main.displayName) 当前无法读取 Codex 本机状态。")
             )
         case .unsupported:
             return CodexHealthReport(
@@ -344,7 +344,7 @@ struct CodexThreadStatus: Equatable, Codable {
             return CodexHealthReport(
                 level: .warning,
                 title: String(localized: "等待首次数据"),
-                detail: String(localized: "Atoll 正在等待 Codex 写入本机状态。")
+                detail: String(localized: "\(Bundle.main.displayName) 正在等待 Codex 写入本机状态。")
             )
         }
 
@@ -361,14 +361,14 @@ struct CodexThreadStatus: Equatable, Codable {
             return CodexHealthReport(
                 level: .warning,
                 title: String(localized: "状态仍在判断"),
-                detail: String(localized: "Atoll 已读取到数据，但暂时无法确定 Codex 运行阶段。")
+                detail: String(localized: "\(Bundle.main.displayName) 已读取到数据，但暂时无法确定 Codex 运行阶段。")
             )
         }
 
         return CodexHealthReport(
             level: .good,
             title: String(localized: "读取正常"),
-            detail: String(localized: "Atoll 可以读取 Codex 状态和最近活动。")
+            detail: String(localized: "\(Bundle.main.displayName) 可以读取 Codex 状态和最近活动。")
         )
     }
 }

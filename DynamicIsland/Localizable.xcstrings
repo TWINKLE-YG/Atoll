@@ -50005,54 +50005,54 @@
         }
       }
     },
-    "Restart Atoll" : {
+    "Restart PulseDock" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Relancer Atoll"
+            "value" : "Relancer PulseDock"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atoll 재시작"
+            "value" : "PulseDock 재시작"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atoll opnieuw starten"
+            "value" : "PulseDock opnieuw starten"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reiniciar Atoll"
+            "value" : "Reiniciar PulseDock"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Перезапустить Atoll"
+            "value" : "Перезапустить PulseDock"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "รีสตาร์ท Atoll"
+            "value" : "รีสตาร์ท PulseDock"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atoll'u yeniden başlat"
+            "value" : "PulseDock'u yeniden başlat"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重启 Atoll"
+            "value" : "重启 PulseDock"
           }
         }
       }

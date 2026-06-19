@@ -23,6 +23,18 @@
 import SwiftUI
 
 extension Bundle {
+    var displayName: String {
+        if let displayName = object(forInfoDictionaryKey: "CFBundleDisplayName") as? String,
+           !displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return displayName
+        }
+        if let bundleName = object(forInfoDictionaryKey: "CFBundleName") as? String,
+           !bundleName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return bundleName
+        }
+        return "PulseDock"
+    }
+
     var releaseVersionNumber: String? {
         return infoDictionary?["CFBundleShortVersionString"] as? String
     }

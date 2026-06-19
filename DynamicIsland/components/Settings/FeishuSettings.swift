@@ -117,7 +117,7 @@ struct FeishuSettings: View {
             } header: {
                 Text("状态")
             } footer: {
-                Text("如果状态显示需要授权，请在系统设置中为 Atoll 开启“完全磁盘访问权限”，然后重启 Atoll。")
+                Text("如果状态显示需要授权，请在系统设置中为 \(Bundle.main.displayName) 开启“完全磁盘访问权限”，然后重启 \(Bundle.main.displayName)。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

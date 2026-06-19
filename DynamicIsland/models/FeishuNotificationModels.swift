@@ -41,7 +41,7 @@ enum FeishuNotificationAvailability: Equatable {
         case .available:
             return String(localized: "正在读取本机通知记录，识别飞书 @你 和私聊。")
         case .permissionRequired:
-            return String(localized: "macOS 不允许读取通知数据库。请给 Atoll 开启完全磁盘访问权限。")
+            return String(localized: "macOS 不允许读取通知数据库。请给 \(Bundle.main.displayName) 开启完全磁盘访问权限。")
         case .error(let message):
             return message
         }
