@@ -66,6 +66,8 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case shortcuts
     case notes
     case terminal
+    case codex
+    case feishu
     case about
 
     var id: String { rawValue }
@@ -80,7 +82,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .clipboard, .screenAssistant, .colorPicker, .shelf,
              .downloads, .shortcuts:                                         return .utilities
         case .stats, .terminal:                                              return .developer
-        case .extensions:                                                    return .integrations
+        case .extensions, .codex, .feishu:                                   return .integrations
         case .about:                                                         return .info
         }
     }
@@ -107,6 +109,8 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .shortcuts: return String(localized: "Shortcuts")
         case .notes: return String(localized: "Notes")
         case .terminal: return String(localized: "Terminal")
+        case .codex: return String(localized: "Codex")
+        case .feishu: return String(localized: "飞书")
         case .about: return String(localized: "About")
         }
     }
@@ -133,6 +137,8 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .shortcuts: return "keyboard"
         case .notes: return "note.text"
         case .terminal: return "apple.terminal"
+        case .codex: return "sparkles"
+        case .feishu: return "message.badge"
         case .about: return "info.circle"
         }
     }
@@ -159,6 +165,8 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .shortcuts: return .orange
         case .notes: return Color(red: 0.979, green: 0.716, blue: 0.153, opacity: 1.000)
         case .terminal: return Color(red: 0.2, green: 0.8, blue: 0.4)
+        case .codex: return .cyan
+        case .feishu: return .cyan
         case .about: return .secondary
         }
     }
@@ -508,6 +516,8 @@ struct SettingsView: View {
             .stats,
             .terminal,
             // Integrations
+            .codex,
+            .feishu,
             .extensions,
             // Info
             .about
@@ -925,6 +935,13 @@ struct SettingsView: View {
             SettingsSearchEntry(tab: .terminal, title: "Scrollback lines", keywords: ["terminal", "scrollback", "buffer", "history"], highlightID: SettingsTab.terminal.highlightID(for: "Scrollback lines")),
             SettingsSearchEntry(tab: .terminal, title: "Option as Meta", keywords: ["terminal", "option", "meta", "alt", "key"], highlightID: SettingsTab.terminal.highlightID(for: "Option as Meta")),
             SettingsSearchEntry(tab: .terminal, title: "Mouse reporting", keywords: ["terminal", "mouse", "reporting", "vim", "tmux"], highlightID: SettingsTab.terminal.highlightID(for: "Mouse reporting")),
+
+            // Codex
+            SettingsSearchEntry(tab: .codex, title: "启用 Codex 集成", keywords: ["codex", "ai", "thread", "status", "状态", "线程"], highlightID: SettingsTab.codex.highlightID(for: "启用 Codex 集成")),
+            SettingsSearchEntry(tab: .codex, title: "隐私", keywords: ["codex", "privacy", "summary", "隐私", "摘要"], highlightID: SettingsTab.codex.highlightID(for: "隐私")),
+
+            // Feishu
+            SettingsSearchEntry(tab: .feishu, title: "启用飞书本地通知监听", keywords: ["feishu", "lark", "飞书", "通知", "私聊", "@我"], highlightID: SettingsTab.feishu.highlightID(for: "启用飞书本地通知监听")),
         ]
     }
 
@@ -1020,6 +1037,14 @@ struct SettingsView: View {
             SettingsForm(tab: .terminal) {
                 TerminalSettings()
             }
+        case .codex:
+            SettingsForm(tab: .codex) {
+                CodexSettings()
+            }
+        case .feishu:
+            SettingsForm(tab: .feishu) {
+                FeishuSettings()
+            }
         case .about:
             if let controller = updaterController {
                 SettingsForm(tab: .about) {
@@ -1088,6 +1113,8 @@ struct GeneralSettings: View {
             } footer: {
                 Text("Minimalistic mode focuses on media controls and system HUDs, hiding all extra features for a clean, focused experience. Automatically enables simpler animations.")
             }
+
+            NotchHeaderCustomizationSettings()
 
             Section {
                 Defaults.Toggle(key: .menubarIcon) {

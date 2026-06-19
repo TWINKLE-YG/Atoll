@@ -46,6 +46,8 @@ struct TabModel: Identifiable {
 struct TabSelectionView: View {
     @ObservedObject var coordinator = DynamicIslandViewCoordinator.shared
     @ObservedObject private var extensionNotchExperienceManager = ExtensionNotchExperienceManager.shared
+    @ObservedObject private var codexManager = CodexManager.shared
+    @ObservedObject private var feishuManager = FeishuNotificationManager.shared
     @StateObject private var quickShareService = QuickShareService.shared
     @Default(.quickShareProvider) private var quickShareProvider
     @State private var showQuickSharePopover = false
@@ -56,57 +58,77 @@ struct TabSelectionView: View {
     @Default(.enableThirdPartyExtensions) private var enableThirdPartyExtensions
     @Default(.enableExtensionNotchExperiences) private var enableExtensionNotchExperiences
     @Default(.enableExtensionNotchTabs) private var enableExtensionNotchTabs
+    @Default(.enableCodexFeature) private var enableCodexFeature
+    @Default(.codexAlwaysShowTab) private var codexAlwaysShowTab
+    @Default(.enableFeishuNotifications) private var enableFeishuNotifications
+    @Default(.feishuAlwaysShowTab) private var feishuAlwaysShowTab
     @Default(.showCalendar) private var showCalendar
     @Default(.showMirror) private var showMirror
     @Default(.showStandardMediaControls) private var showStandardMediaControls
     @Default(.enableMinimalisticUI) private var enableMinimalisticUI
-    @Namespace var animation
+    @Default(.notchTabOrder) private var notchTabOrder
+    @Default(.hiddenNotchTabs) private var hiddenNotchTabs
     
     private var tabs: [TabModel] {
-        var tabsArray: [TabModel] = []
+        var tabGroups: [NotchTabItem: [TabModel]] = [:]
 
         if homeTabVisible {
-            tabsArray.append(TabModel(label: "Home", icon: "house.fill", view: .home))
+            tabGroups[.home] = [TabModel(label: "Home", icon: NotchTabItem.home.systemImage, view: .home)]
         }
 
         if Defaults[.dynamicShelf] {
-            tabsArray.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
-        }
-        
-        if enableTimerFeature && timerDisplayMode == .tab {
-            tabsArray.append(TabModel(label: "Timer", icon: "timer", view: .timer))
+            tabGroups[.shelf] = [TabModel(label: "Shelf", icon: NotchTabItem.shelf.systemImage, view: .shelf)]
         }
 
-        // Stats tab only shown when stats feature is enabled
+        if enableTimerFeature && timerDisplayMode == .tab {
+            tabGroups[.timer] = [TabModel(label: "Timer", icon: NotchTabItem.timer.systemImage, view: .timer)]
+        }
+
         if Defaults[.enableStatsFeature] {
-            tabsArray.append(TabModel(label: "Stats", icon: "chart.xyaxis.line", view: .stats))
+            tabGroups[.stats] = [TabModel(label: "Stats", icon: NotchTabItem.stats.systemImage, view: .stats)]
         }
 
         if Defaults[.enableNotes] || (Defaults[.enableClipboardManager] && Defaults[.clipboardDisplayMode] == .separateTab) {
             let label = Defaults[.enableNotes] ? "Notes" : "Clipboard"
-            let icon = Defaults[.enableNotes] ? "note.text" : "doc.on.clipboard"
-            tabsArray.append(TabModel(label: label, icon: icon, view: .notes))
+            let icon = Defaults[.enableNotes] ? NotchTabItem.notes.systemImage : "doc.on.clipboard"
+            tabGroups[.notes] = [TabModel(label: label, icon: icon, view: .notes)]
         }
+
         if Defaults[.enableTerminalFeature] {
-            tabsArray.append(TabModel(label: "Terminal", icon: "apple.terminal", view: .terminal))
+            tabGroups[.terminal] = [TabModel(label: "Terminal", icon: NotchTabItem.terminal.systemImage, view: .terminal)]
         }
+
+        if enableCodexFeature && (codexAlwaysShowTab || codexManager.status.state.isActive) {
+            tabGroups[.codex] = [TabModel(label: "Codex", icon: NotchTabItem.codex.systemImage, view: .codex, accentColor: codexManager.status.state.accentColor)]
+        }
+
+        if enableFeishuNotifications && (feishuAlwaysShowTab || feishuManager.status.hasMention) {
+            tabGroups[.feishu] = [TabModel(label: "飞书", icon: NotchTabItem.feishu.systemImage, view: .feishu, accentColor: feishuManager.status.accentColor)]
+        }
+
         if extensionTabsEnabled {
-            for payload in extensionTabPayloads {
-                guard let tab = payload.descriptor.tab else { continue }
+            let extensionModels = extensionTabPayloads.compactMap { payload -> TabModel? in
+                guard let tab = payload.descriptor.tab else { return nil }
                 let accent = payload.descriptor.accentColor.swiftUIColor
-                let iconName = tab.iconSymbolName ?? "puzzlepiece.extension"
-                tabsArray.append(
-                    TabModel(
-                        label: tab.title,
-                        icon: iconName,
-                        view: .extensionExperience,
-                        experienceID: payload.descriptor.id,
-                        accentColor: accent
-                    )
+                let iconName = tab.iconSymbolName ?? NotchTabItem.extensions.systemImage
+                return TabModel(
+                    label: tab.title,
+                    icon: iconName,
+                    view: .extensionExperience,
+                    experienceID: payload.descriptor.id,
+                    accentColor: accent
                 )
             }
+            if !extensionModels.isEmpty {
+                tabGroups[.extensions] = extensionModels
+            }
         }
-        return tabsArray
+
+        let hidden = Set(hiddenNotchTabs)
+        return normalizedTabOrder.flatMap { item -> [TabModel] in
+            guard !hidden.contains(item) else { return [] }
+            return tabGroups[item] ?? []
+        }
     }
     var body: some View {
         HStack(spacing: 24) {
@@ -128,12 +150,6 @@ struct TabSelectionView: View {
                         Capsule()
                             .fill((tab.accentColor ?? Color(nsColor: .secondarySystemFill)).opacity(0.25))
                             .shadow(color: (tab.accentColor ?? .clear).opacity(0.4), radius: 8)
-                            .matchedGeometryEffect(id: "capsule", in: animation)
-                    } else {
-                        Capsule()
-                            .fill(Color.clear)
-                            .matchedGeometryEffect(id: "capsule", in: animation)
-                            .hidden()
                     }
                 }
 
@@ -145,6 +161,13 @@ struct TabSelectionView: View {
         .onAppear {
             ensureValidSelection(with: tabs)
         }
+        .onChange(of: tabIDs) { _, _ in
+            ensureValidSelection(with: tabs)
+        }
+    }
+
+    private var tabIDs: [String] {
+        tabs.map(\.id)
     }
 
     private var extensionTabsEnabled: Bool {
@@ -160,6 +183,17 @@ struct TabSelectionView: View {
             return true
         }
         return showStandardMediaControls || showCalendar || showMirror
+    }
+
+    private var normalizedTabOrder: [NotchTabItem] {
+        let defaults = NotchTabItem.defaultOrder
+        var seen = Set<NotchTabItem>()
+        let stored = notchTabOrder.filter { item in
+            guard defaults.contains(item), !seen.contains(item) else { return false }
+            seen.insert(item)
+            return true
+        }
+        return stored + defaults.filter { !seen.contains($0) }
     }
 
     private func isSelected(_ tab: TabModel) -> Bool {

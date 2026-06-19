@@ -39,6 +39,8 @@ struct DynamicIslandHeader: View {
     @Default(.showBatteryIndicator) var showBatteryIndicator
     @Default(.showBatteryPercentInside) var showBatteryPercentInside
     @Default(.enableMinimalisticUI) var enableMinimalisticUI
+    @Default(.notchQuickActionOrder) private var notchQuickActionOrder
+    @Default(.hiddenNotchQuickActions) private var hiddenNotchQuickActions
     
     var body: some View {
         HStack(spacing: 0) {
@@ -69,194 +71,9 @@ struct DynamicIslandHeader: View {
             }
 
             HStack(spacing: 4) {
-                if vm.notchState == .open && !enableMinimalisticUI {
-                    if Defaults[.showMirror] {
-                        Button(action: {
-                            vm.toggleCameraPreview()
-                        }) {
-                            Capsule()
-                                .fill(.black)
-                                .frame(width: 30, height: 30)
-                                .overlay {
-                                    Image(systemName: "web.camera")
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .imageScale(.medium)
-                                }
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    
-                    if Defaults[.enableClipboardManager]
-                        && showClipboardIcon
-                        && clipboardDisplayMode != .separateTab {
-                        Button(action: {
-                            // Switch behavior based on display mode
-                            switch clipboardDisplayMode {
-                            case .panel:
-                                ClipboardPanelManager.shared.toggleClipboardPanel()
-                            case .popover:
-                                showClipboardPopover.toggle()
-                            case .separateTab:
-                                coordinator.currentView = .notes
-                            }
-                        }) {
-                            Capsule()
-                                .fill(.black)
-                                .frame(width: 30, height: 30)
-                                .overlay {
-                                    Image(systemName: "doc.on.clipboard")
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .imageScale(.medium)
-                                }
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .popover(isPresented: $showClipboardPopover, arrowEdge: .bottom) {
-                            ClipboardPopover()
-                        }
-                        .onChange(of: showClipboardPopover) { isActive in
-                            vm.isClipboardPopoverActive = isActive
-                            
-                            // If popover was closed, trigger a hover recheck
-                            if !isActive {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    vm.shouldRecheckHover.toggle()
-                                }
-                            }
-                        }
-                        .onAppear {
-                            if Defaults[.enableClipboardManager] && !clipboardManager.isMonitoring {
-                                clipboardManager.startMonitoring()
-                            }
-                        }
-                    }
-                    
-                    // ColorPicker button
-                    if Defaults[.enableColorPickerFeature] && showColorPickerIcon{
-                        Button(action: {
-                            switch Defaults[.colorPickerDisplayMode] {
-                            case .panel:
-                                ColorPickerPanelManager.shared.toggleColorPickerPanel()
-                            case .popover:
-                                showColorPickerPopover.toggle()
-                            }
-                        }) {
-                            Capsule()
-                                .fill(.black)
-                                .frame(width: 30, height: 30)
-                                .overlay {
-                                    Image(systemName: "eyedropper")
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .imageScale(.medium)
-                                }
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .popover(isPresented: $showColorPickerPopover, arrowEdge: .bottom) {
-                            ColorPickerPopover()
-                        }
-                        .onChange(of: showColorPickerPopover) { isActive in
-                            vm.isColorPickerPopoverActive = isActive
-                            
-                            // If popover was closed, trigger a hover recheck
-                            if !isActive {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    vm.shouldRecheckHover.toggle()
-                                }
-                            }
-                        }
-                    }
-                    
-                    if Defaults[.enableTimerFeature] && timerDisplayMode == .popover {
-                        Button(action: {
-                            withAnimation(.smooth) {
-                                showTimerPopover.toggle()
-                            }
-                        }) {
-                            Capsule()
-                                .fill(.black)
-                                .frame(width: 30, height: 30)
-                                .overlay {
-                                    Image(systemName: "timer")
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .imageScale(.medium)
-                                }
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .popover(isPresented: $showTimerPopover, arrowEdge: .bottom) {
-                            TimerPopover()
-                        }
-                        .onChange(of: showTimerPopover) { isActive in
-                            vm.isTimerPopoverActive = isActive
-                            if !isActive {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    vm.shouldRecheckHover.toggle()
-                                }
-                            }
-                        }
-                    }
-                    
-                    if Defaults[.settingsIconInNotch] {
-                        Button(action: {
-                            SettingsWindowController.shared.showWindow()
-                        }) {
-                            Capsule()
-                                .fill(.black)
-                                .frame(width: 30, height: 30)
-                                .overlay {
-                                    Image(systemName: "gear")
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .imageScale(.medium)
-                                }
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    
-                    // Screen Recording Indicator
-                    if Defaults[.enableScreenRecordingDetection] && Defaults[.showRecordingIndicator] && !shouldSuppressStatusIndicators {
-                        RecordingIndicator()
-                            .frame(width: 30, height: 30) // Same size as other header elements
-                    }
-
-                    if Defaults[.enableDoNotDisturbDetection]
-                        && Defaults[.showDoNotDisturbIndicator]
-                        && doNotDisturbManager.isDoNotDisturbActive
-                        && !shouldSuppressStatusIndicators {
-                        FocusIndicator()
-                            .frame(width: 30, height: 30)
-                            .transition(.opacity)
-                    }
-                }
-
-                if vm.notchState == .open && showBatteryIndicator {
-                    if enableMinimalisticUI {
-                        if !shouldUseDynamicIslandMode(for: vm.screen) {
-                            MinimalisticBatteryView(
-                                levelBattery: batteryModel.levelBattery,
-                                isPluggedIn: batteryModel.isPluggedIn,
-                                isCharging: batteryModel.isCharging,
-                                isInLowPowerMode: batteryModel.isInLowPowerMode,
-                                bodyWidth: 28,
-                                bodyHeight: 14,
-                                isForNotification: false,
-                                showPercentInside: showBatteryPercentInside
-                            )
-                            .padding(.trailing, 4)
-                        }
-                    } else {
-                        DynamicIslandBatteryView(
-                            batteryWidth: 30,
-                            isCharging: batteryModel.isCharging,
-                            isInLowPowerMode: batteryModel.isInLowPowerMode,
-                            isPluggedIn: batteryModel.isPluggedIn,
-                            levelBattery: batteryModel.levelBattery,
-                            maxCapacity: batteryModel.maxCapacity,
-                            timeToFullCharge: batteryModel.timeToFullCharge,
-                            isForNotification: false
-                        )
+                if vm.notchState == .open {
+                    ForEach(visibleQuickActions) { item in
+                        quickActionView(item)
                     }
                 }
             }
@@ -308,6 +125,176 @@ struct DynamicIslandHeader: View {
 }
 
 private extension DynamicIslandHeader {
+    var visibleQuickActions: [NotchQuickActionItem] {
+        let hidden = Set(hiddenNotchQuickActions)
+        return normalizedQuickActionOrder.filter { item in
+            guard !hidden.contains(item) else { return false }
+            switch item {
+            case .mirror:
+                return !enableMinimalisticUI && Defaults[.showMirror]
+            case .clipboard:
+                return !enableMinimalisticUI
+                    && Defaults[.enableClipboardManager]
+                    && showClipboardIcon
+                    && clipboardDisplayMode != .separateTab
+            case .colorPicker:
+                return !enableMinimalisticUI
+                    && Defaults[.enableColorPickerFeature]
+                    && showColorPickerIcon
+            case .timer:
+                return !enableMinimalisticUI
+                    && Defaults[.enableTimerFeature]
+                    && timerDisplayMode == .popover
+            case .settings:
+                return !enableMinimalisticUI && Defaults[.settingsIconInNotch]
+            case .recording:
+                return false
+            case .focus:
+                return false
+            case .battery:
+                return false
+            }
+        }
+    }
+
+    var normalizedQuickActionOrder: [NotchQuickActionItem] {
+        let defaults = NotchQuickActionItem.defaultOrder
+        var seen = Set<NotchQuickActionItem>()
+        let stored = notchQuickActionOrder.filter { item in
+            guard defaults.contains(item), !seen.contains(item) else { return false }
+            seen.insert(item)
+            return true
+        }
+        return stored + defaults.filter { !seen.contains($0) }
+    }
+
+    @ViewBuilder
+    func quickActionView(_ item: NotchQuickActionItem) -> some View {
+        switch item {
+        case .mirror:
+            headerIconButton(systemName: item.systemImage) {
+                vm.toggleCameraPreview()
+            }
+        case .clipboard:
+            headerIconButton(systemName: item.systemImage) {
+                switch clipboardDisplayMode {
+                case .panel:
+                    ClipboardPanelManager.shared.toggleClipboardPanel()
+                case .popover:
+                    showClipboardPopover.toggle()
+                case .separateTab:
+                    coordinator.currentView = .notes
+                }
+            }
+            .popover(isPresented: $showClipboardPopover, arrowEdge: .bottom) {
+                ClipboardPopover()
+            }
+            .onChange(of: showClipboardPopover) { isActive in
+                vm.isClipboardPopoverActive = isActive
+
+                if !isActive {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        vm.shouldRecheckHover.toggle()
+                    }
+                }
+            }
+            .onAppear {
+                if Defaults[.enableClipboardManager] && !clipboardManager.isMonitoring {
+                    clipboardManager.startMonitoring()
+                }
+            }
+        case .colorPicker:
+            headerIconButton(systemName: item.systemImage) {
+                switch Defaults[.colorPickerDisplayMode] {
+                case .panel:
+                    ColorPickerPanelManager.shared.toggleColorPickerPanel()
+                case .popover:
+                    showColorPickerPopover.toggle()
+                }
+            }
+            .popover(isPresented: $showColorPickerPopover, arrowEdge: .bottom) {
+                ColorPickerPopover()
+            }
+            .onChange(of: showColorPickerPopover) { isActive in
+                vm.isColorPickerPopoverActive = isActive
+
+                if !isActive {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        vm.shouldRecheckHover.toggle()
+                    }
+                }
+            }
+        case .timer:
+            headerIconButton(systemName: item.systemImage) {
+                withAnimation(.smooth) {
+                    showTimerPopover.toggle()
+                }
+            }
+            .popover(isPresented: $showTimerPopover, arrowEdge: .bottom) {
+                TimerPopover()
+            }
+            .onChange(of: showTimerPopover) { isActive in
+                vm.isTimerPopoverActive = isActive
+                if !isActive {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        vm.shouldRecheckHover.toggle()
+                    }
+                }
+            }
+        case .settings:
+            headerIconButton(systemName: item.systemImage) {
+                SettingsWindowController.shared.showWindow()
+            }
+        case .recording:
+            RecordingIndicator()
+                .frame(width: 30, height: 30)
+        case .focus:
+            FocusIndicator()
+                .frame(width: 30, height: 30)
+                .transition(.opacity)
+        case .battery:
+            if enableMinimalisticUI {
+                MinimalisticBatteryView(
+                    levelBattery: batteryModel.levelBattery,
+                    isPluggedIn: batteryModel.isPluggedIn,
+                    isCharging: batteryModel.isCharging,
+                    isInLowPowerMode: batteryModel.isInLowPowerMode,
+                    bodyWidth: 28,
+                    bodyHeight: 14,
+                    isForNotification: false,
+                    showPercentInside: showBatteryPercentInside
+                )
+                .padding(.trailing, 4)
+            } else {
+                DynamicIslandBatteryView(
+                    batteryWidth: 30,
+                    isCharging: batteryModel.isCharging,
+                    isInLowPowerMode: batteryModel.isInLowPowerMode,
+                    isPluggedIn: batteryModel.isPluggedIn,
+                    levelBattery: batteryModel.levelBattery,
+                    maxCapacity: batteryModel.maxCapacity,
+                    timeToFullCharge: batteryModel.timeToFullCharge,
+                    isForNotification: false
+                )
+            }
+        }
+    }
+
+    func headerIconButton(systemName: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Capsule()
+                .fill(.black)
+                .frame(width: 30, height: 30)
+                .overlay {
+                    Image(systemName: systemName)
+                        .foregroundColor(.white)
+                        .padding()
+                        .imageScale(.medium)
+                }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
     var shouldSuppressStatusIndicators: Bool {
         Defaults[.settingsIconInNotch]
             && Defaults[.enableClipboardManager]

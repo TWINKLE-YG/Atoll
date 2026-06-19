@@ -79,6 +79,8 @@ public enum NotchViews {
     case notes
     case clipboard
     case terminal
+    case codex
+    case feishu
     case extensionExperience
 }
 
@@ -344,4 +346,3 @@ enum TimerInputStyle: String, CaseIterable, Defaults.Serializable, Identifiable 
         }
     }
 }
-

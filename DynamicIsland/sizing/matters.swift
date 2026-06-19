@@ -92,6 +92,16 @@ func enabledStandardTabCount() -> Int {
         count += 1
     }
 
+    // Codex tab
+    if Defaults[.enableCodexFeature] && Defaults[.codexAlwaysShowTab] {
+        count += 1
+    }
+
+    // Feishu tab
+    if Defaults[.enableFeishuNotifications] && Defaults[.feishuAlwaysShowTab] {
+        count += 1
+    }
+
     return count
 }
 

@@ -1103,6 +1103,12 @@ extension Defaults.Keys {
     static let terminalForegroundColor = Key<Color>("terminalForegroundColor", default: .white)
     static let terminalCursorColor = Key<Color>("terminalCursorColor", default: Color(.selectedControlColor))
     static let terminalStickyMode = Key<Bool>("terminalStickyMode", default: false)
+
+    // MARK: Notch Header Customization
+    static let notchTabOrder = Key<[NotchTabItem]>("notchTabOrder", default: NotchTabItem.defaultOrder)
+    static let hiddenNotchTabs = Key<[NotchTabItem]>("hiddenNotchTabs", default: [])
+    static let notchQuickActionOrder = Key<[NotchQuickActionItem]>("notchQuickActionOrder", default: NotchQuickActionItem.defaultOrder)
+    static let hiddenNotchQuickActions = Key<[NotchQuickActionItem]>("hiddenNotchQuickActions", default: [])
     
     // MARK: Timer Feature
     static let enableTimerFeature = Key<Bool>("enableTimerFeature", default: true)
@@ -1150,6 +1156,32 @@ extension Defaults.Keys {
     static let selectedAIModel = Key<AIModel?>("selectedAIModel", default: nil)
     static let enableThinkingMode = Key<Bool>("enableThinkingMode", default: false)
     static let localModelEndpoint = Key<String>("localModelEndpoint", default: "http://localhost:11434")
+
+    // MARK: Codex Feature
+    static let enableCodexFeature = Key<Bool>("enableCodexFeature", default: false)
+    static let codexPrivacyMode = Key<CodexPrivacyMode>("codexPrivacyMode", default: .summary)
+    static let codexActiveRefreshInterval = Key<Double>("codexActiveRefreshInterval", default: 2.0)
+    static let codexIdleRefreshInterval = Key<Double>("codexIdleRefreshInterval", default: 10.0)
+    static let codexShowWaitingAlerts = Key<Bool>("codexShowWaitingAlerts", default: true)
+    static let codexShowDoneAlerts = Key<Bool>("codexShowDoneAlerts", default: true)
+    static let codexShowErrorAlerts = Key<Bool>("codexShowErrorAlerts", default: true)
+    static let codexAlwaysShowTab = Key<Bool>("codexAlwaysShowTab", default: true)
+    static let codexSessionListLimit = Key<Int>("codexSessionListLimit", default: 3)
+    static let codexMockStatusFilePath = Key<String>("codexMockStatusFilePath", default: "")
+    static let codexDebugLoggingEnabled = Key<Bool>("codexDebugLoggingEnabled", default: false)
+
+    // MARK: Feishu Notifications
+    static let enableFeishuNotifications = Key<Bool>("enableFeishuNotifications", default: false)
+    static let feishuAlwaysShowTab = Key<Bool>("feishuAlwaysShowTab", default: false)
+    static let feishuPollInterval = Key<Double>("feishuPollInterval", default: 3.0)
+    static let feishuMentionKeywords = Key<String>("feishuMentionKeywords", default: "@你\n提到了你\nmention")
+    static let feishuDirectMessageKeywords = Key<String>("feishuDirectMessageKeywords", default: "私聊\n发来消息\nsent you")
+    static let feishuAllowedSenderKeywords = Key<String>("feishuAllowedSenderKeywords", default: "")
+    static let feishuAllowedConversationKeywords = Key<String>("feishuAllowedConversationKeywords", default: "")
+    static let feishuBlockedKeywords = Key<String>("feishuBlockedKeywords", default: "")
+    static let feishuPriorityQueueLimit = Key<Int>("feishuPriorityQueueLimit", default: 3)
+    static let feishuShowMessagePreview = Key<Bool>("feishuShowMessagePreview", default: true)
+    static let feishuDebugLoggingEnabled = Key<Bool>("feishuDebugLoggingEnabled", default: false)
 
     // MARK: Third-Party Extensions
     static let enableThirdPartyExtensions = Key<Bool>("enableThirdPartyExtensions", default: true)

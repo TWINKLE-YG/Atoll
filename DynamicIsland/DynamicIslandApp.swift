@@ -579,6 +579,49 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Setup Lunar integration
         LunarManager.shared.configure(coordinator: coordinator)
+
+        if Defaults[.enableCodexFeature] {
+            CodexManager.shared.start()
+        }
+
+        if Defaults[.enableFeishuNotifications] {
+            FeishuNotificationManager.shared.start()
+        }
+
+        Defaults.publisher(.enableCodexFeature, options: [])
+            .sink { [weak self] change in
+                if change.newValue {
+                    CodexManager.shared.start()
+                } else {
+                    CodexManager.shared.stop()
+                }
+                self?.debouncedUpdateWindowSize()
+            }
+            .store(in: &cancellables)
+
+        Defaults.publisher(.enableFeishuNotifications, options: [])
+            .sink { [weak self] change in
+                if change.newValue {
+                    FeishuNotificationManager.shared.start()
+                } else {
+                    FeishuNotificationManager.shared.stop()
+                }
+                self?.debouncedUpdateWindowSize()
+            }
+            .store(in: &cancellables)
+
+        Defaults.publisher(.codexMockStatusFilePath, options: [])
+            .sink { change in
+                CodexManager.shared.configure(
+                    provider: CodexStatusProviderFactory.makeDefaultProvider(
+                        mockStatusFilePath: change.newValue
+                    )
+                )
+                if Defaults[.enableCodexFeature] {
+                    CodexManager.shared.start()
+                }
+            }
+            .store(in: &cancellables)
         
         // Setup ScreenRecording Manager
         if Defaults[.enableScreenRecordingDetection] {

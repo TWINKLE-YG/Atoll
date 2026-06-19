@@ -525,8 +525,16 @@ struct ExtensionCountdownTextView: View {
 // MARK: - Layout Metrics
 
 enum ExtensionLayoutMetrics {
-    static func trailingWidth(for payload: ExtensionLiveActivityPayload, baseWidth: CGFloat, maxWidth: CGFloat? = nil) -> CGFloat {
-        let renderable = resolvedExtensionTrailingRenderable(for: payload.descriptor)
+    static func trailingWidth(
+        for payload: ExtensionLiveActivityPayload,
+        baseWidth: CGFloat,
+        maxWidth: CGFloat? = nil,
+        hidesTextContent: Bool = false
+    ) -> CGFloat {
+        let renderable = resolvedExtensionTrailingRenderable(
+            for: payload.descriptor,
+            hidesTextContent: hidesTextContent
+        )
         var width: CGFloat
         switch renderable {
         case let .content(content):
@@ -615,13 +623,30 @@ func resolvedExtensionLeadingContent(for descriptor: AtollLiveActivityDescriptor
     }
 }
 
-func resolvedExtensionTrailingRenderable(for descriptor: AtollLiveActivityDescriptor) -> ExtensionTrailingRenderable {
+func resolvedExtensionTrailingRenderable(
+    for descriptor: AtollLiveActivityDescriptor,
+    hidesTextContent: Bool = false
+) -> ExtensionTrailingRenderable {
     if let indicator = descriptor.progressIndicator,
        indicator.isRenderable,
        descriptor.trailingContent == .none {
         return .indicator(indicator)
     }
+    if hidesTextContent && descriptor.trailingContent.isTextLike {
+        return .content(.none)
+    }
     return .content(descriptor.trailingContent)
+}
+
+private extension AtollTrailingContent {
+    var isTextLike: Bool {
+        switch self {
+        case .text, .marquee, .countdownText:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 private extension AtollProgressIndicator {

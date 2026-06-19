@@ -36,6 +36,8 @@ enum SneakContentType: Equatable {
     case privacy
     case lockScreen
     case capsLock
+    case codex
+    case feishu
     case extensionLiveActivity(bundleID: String, activityID: String)
 }
 
@@ -56,7 +58,9 @@ extension SneakContentType {
              (.bluetoothAudio, .bluetoothAudio),
              (.privacy, .privacy),
              (.lockScreen, .lockScreen),
-             (.capsLock, .capsLock):
+             (.capsLock, .capsLock),
+             (.codex, .codex),
+             (.feishu, .feishu):
             return true
         case let (.extensionLiveActivity(lb, la), .extensionLiveActivity(rb, ra)):
             return lb == rb && la == ra
@@ -72,6 +76,15 @@ extension SneakContentType {
             return true
         }
         return false
+    }
+
+    var isSystemStatusSurface: Bool {
+        switch self {
+        case .battery, .recording, .doNotDisturb, .privacy, .lockScreen, .capsLock, .mic:
+            return true
+        case .brightness, .volume, .backlight, .music, .download, .timer, .reminder, .bluetoothAudio, .codex, .feishu, .extensionLiveActivity:
+            return false
+        }
     }
 }
 
@@ -105,7 +118,7 @@ class DynamicIslandViewCoordinator: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var hoverOpenSuppressedUntil: Date = .distantPast
     
-    private static let tabOrder: [NotchViews] = [.home, .shelf, .timer, .stats, .colorPicker, .notes, .clipboard, .terminal, .extensionExperience]
+    private static let tabOrder: [NotchViews] = [.home, .shelf, .timer, .stats, .colorPicker, .notes, .clipboard, .terminal, .codex, .feishu, .extensionExperience]
     
     /// Direction of the most recent tab switch (true = forward/right, false = backward/left)
     @Published var tabSwitchForward: Bool = true
@@ -236,6 +249,9 @@ class DynamicIslandViewCoordinator: ObservableObject {
             Defaults.publisher(.enableClipboardManager).map { _ in () }.eraseToAnyPublisher(),
             Defaults.publisher(.clipboardDisplayMode).map { _ in () }.eraseToAnyPublisher(),
             Defaults.publisher(.enableTerminalFeature).map { _ in () }.eraseToAnyPublisher(),
+            Defaults.publisher(.enableCodexFeature).map { _ in () }.eraseToAnyPublisher(),
+            Defaults.publisher(.enableFeishuNotifications).map { _ in () }.eraseToAnyPublisher(),
+            Defaults.publisher(.feishuAlwaysShowTab).map { _ in () }.eraseToAnyPublisher(),
             Defaults.publisher(.enableMinimalisticUI).map { _ in () }.eraseToAnyPublisher()
         )
         .debounce(for: .milliseconds(100), scheduler: DispatchQueue.main)
@@ -349,7 +365,7 @@ class DynamicIslandViewCoordinator: ObservableObject {
             resolvedDuration = duration
         }
         sneakPeekDuration = resolvedDuration
-        let bypassedTypes: [SneakContentType] = [.music, .timer, .reminder, .bluetoothAudio]
+        let bypassedTypes: [SneakContentType] = [.music, .timer, .reminder, .bluetoothAudio, .codex]
         
         // Check if it's an extension type
         let isExtensionType: Bool

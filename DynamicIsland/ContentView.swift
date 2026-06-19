@@ -52,6 +52,8 @@ struct ContentView: View {
     @ObservedObject var capsLockManager = CapsLockManager.shared
     @ObservedObject var extensionLiveActivityManager = ExtensionLiveActivityManager.shared
     @ObservedObject var extensionNotchExperienceManager = ExtensionNotchExperienceManager.shared
+    @ObservedObject var codexManager = CodexManager.shared
+    @ObservedObject var feishuManager = FeishuNotificationManager.shared
     @ObservedObject var localSendService = LocalSendService.shared
     @State private var downloadManager = DownloadManager.shared
     @ObservedObject var shelfState = ShelfStateViewModel.shared
@@ -80,6 +82,7 @@ struct ContentView: View {
     @Default(.enableScreenRecordingDetection) var enableScreenRecordingDetection
     @Default(.enableCapsLockIndicator) var enableCapsLockIndicator
     @Default(.enableExtensionLiveActivities) var enableExtensionLiveActivities
+    @Default(.enableCodexFeature) var enableCodexFeature
     @Default(.showStandardMediaControls) var showStandardMediaControls
     @Default(.externalDisplayStyle) var externalDisplayStyle
     @Default(.hideNonNotchUntilHover) var hideNonNotchUntilHover
@@ -894,32 +897,16 @@ struct ContentView: View {
                           || currentScreenExpansionType == .music
                           || expansionMatchesSecondary
 
-                      if currentScreenExpansionType == .battery
-                            && isBatteryHUDVisibleOnCurrentScreen
-                            && vm.notchState == .closed
-                            && Defaults[.showPowerStatusNotifications]
-                            && batteryModel.activeTemporaryHUDKind != nil {
-                        BatteryTemporaryActivityView(
-                            kind: batteryModel.activeTemporaryHUDKind ?? .charging,
-                            batteryLevel: displayedBatteryHUDLevel,
-                            isLowPowerMode: displayedBatteryHUDUsesLowPowerMode,
-                            closedNotchWidth: vm.closedNotchSize.width + (isHovering ? 8 : 0),
-                            baseHeight: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0),
-                            isDynamicIslandMode: isDynamicIslandMode,
-                            topCornerRadius: activeCornerRadiusInsets.closed.top,
-                            styleOverride: batteryModel.activeTemporaryHUDKind.map { resolvedBatteryNotificationStyle(for: $0) }
-                        )
-                        .id(batteryModel.activeTemporaryHUDToken)
-                      } else if isSneakPeekVisibleOnCurrentScreen && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && (coordinator.sneakPeek.type != .timer) && (coordinator.sneakPeek.type != .reminder) && !coordinator.sneakPeek.type.isExtensionPayload && ((coordinator.sneakPeek.type != .volume && coordinator.sneakPeek.type != .brightness && coordinator.sneakPeek.type != .backlight) || vm.notchState == .closed) {
+                      if isSneakPeekVisibleOnCurrentScreen && Defaults[.inlineHUD] && !coordinator.sneakPeek.type.isSystemStatusSurface && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .timer) && (coordinator.sneakPeek.type != .reminder) && (coordinator.sneakPeek.type != .codex) && (coordinator.sneakPeek.type != .feishu) && !coordinator.sneakPeek.type.isExtensionPayload && ((coordinator.sneakPeek.type != .volume && coordinator.sneakPeek.type != .brightness && coordinator.sneakPeek.type != .backlight) || vm.notchState == .closed) {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(
                                   coordinator.sneakPeek.type == .capsLock
                                       ? AnyTransition.move(edge: .trailing).combined(with: .opacity)
                                       : AnyTransition.opacity
                               )
-                      } else if vm.notchState == .closed && capsLockManager.isCapsLockActive && Defaults[.enableCapsLockIndicator] && !vm.hideOnClosed && !lockScreenManager.isLocked {
-                          InlineHUD(type: .constant(.capsLock), value: .constant(1.0), icon: .constant(""), hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
-                              .transition(AnyTransition.move(edge: .trailing).combined(with: .opacity))
+                      } else if isCodexClosedActivityActive {
+                          CodexMinimalisticView(status: codexManager.status, action: openCodexPanel)
+                              .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1.2)))
                       } else if canShowMusicDuringExpansion && musicPairingEligible {
                           MusicLiveActivity(secondary: musicSecondary)
                               .id("closed-music-live-activity")
@@ -928,22 +915,12 @@ struct ContentView: View {
                           TimerLiveActivity()
                       } else if (!isCurrentScreenExpansionVisible || currentScreenExpansionType == .reminder) && vm.notchState == .closed && reminderManager.isActive && enableReminderLiveActivity && !vm.hideOnClosed {
                           ReminderLiveActivity()
-                      } else if (!isCurrentScreenExpansionVisible || currentScreenExpansionType == .recording) && vm.notchState == .closed && (recordingManager.isRecording || !recordingManager.isRecorderIdle) && Defaults[.enableScreenRecordingDetection] && !vm.hideOnClosed && !musicPairingEligible {
-                          RecordingLiveActivity()
                       } else if (!isCurrentScreenExpansionVisible || currentScreenExpansionType == .download) && vm.notchState == .closed && downloadManager.isDownloading && Defaults[.enableDownloadListener] && !vm.hideOnClosed {
                           DownloadLiveActivity()
                               .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1.2)))
                       } else if !isCurrentScreenExpansionVisible && vm.notchState == .closed && localSendLiveActivityActive && !vm.hideOnClosed {
                           LocalSendLiveActivity()
                               .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1.2)))
-                      } else if (!isCurrentScreenExpansionVisible || currentScreenExpansionType == .doNotDisturb) && vm.notchState == .closed && Defaults[.enableDoNotDisturbDetection] && Defaults[.showDoNotDisturbIndicator] && (doNotDisturbManager.isDoNotDisturbActive || doNotDisturbManager.isFocusToastDismissing) && !vm.hideOnClosed && !lockScreenManager.isLocked {
-                          DoNotDisturbLiveActivity()
-                    } else if (!isCurrentScreenExpansionVisible || currentScreenExpansionType == .lockScreen) && vm.notchState == .closed && (lockScreenManager.isLocked || !lockScreenManager.isLockIdle) && Defaults[.enableLockScreenLiveActivity] && !vm.hideOnClosed {
-                        LockScreenLiveActivity()
-                            .id("lock-screen-live-activity")
-                            .transition(closedLiveActivitySwapTransition)
-                    } else if (!isCurrentScreenExpansionVisible || currentScreenExpansionType == .privacy) && vm.notchState == .closed && privacyManager.hasAnyIndicator && (Defaults[.enableCameraDetection] || Defaults[.enableMicrophoneDetection]) && !vm.hideOnClosed {
-                        PrivacyLiveActivity()
                       } else if let extensionPayload = extensionStandalonePayload {
                           let layout = extensionStandaloneLayout(
                               for: extensionPayload,
@@ -973,7 +950,7 @@ struct ContentView: View {
                        }
                       
                       if isSneakPeekVisibleOnCurrentScreen {
-                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && (coordinator.sneakPeek.type != .timer) && (coordinator.sneakPeek.type != .reminder) && (coordinator.sneakPeek.type != .capsLock) && !coordinator.sneakPeek.type.isExtensionPayload && !Defaults[.inlineHUD] && ((coordinator.sneakPeek.type != .volume && coordinator.sneakPeek.type != .brightness && coordinator.sneakPeek.type != .backlight) || vm.notchState == .closed) {
+                          if !coordinator.sneakPeek.type.isSystemStatusSurface && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .timer) && (coordinator.sneakPeek.type != .reminder) && (coordinator.sneakPeek.type != .codex) && (coordinator.sneakPeek.type != .feishu) && !coordinator.sneakPeek.type.isExtensionPayload && !Defaults[.inlineHUD] && ((coordinator.sneakPeek.type != .volume && coordinator.sneakPeek.type != .brightness && coordinator.sneakPeek.type != .backlight) || vm.notchState == .closed) {
                               SystemEventIndicatorModifier(eventType: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, sendEventBack: { _ in
                                   //
                               })
@@ -1055,12 +1032,47 @@ struct ContentView: View {
                                   .padding(.bottom, 10)
                               }
                           }
+                          else if coordinator.sneakPeek.type == .codex || coordinator.sneakPeek.type == .feishu {
+                              if !vm.hideOnClosed && activeSneakPeekStyle == .standard {
+                                  GeometryReader { geo in
+                                      let accent = (coordinator.sneakPeek.accentColor ?? .cyan).ensureMinimumBrightness(factor: 0.7)
+                                      HStack(spacing: 6) {
+                                          Image(systemName: coordinator.sneakPeek.icon.isEmpty ? "sparkles" : coordinator.sneakPeek.icon)
+                                              .font(.system(size: 10, weight: .semibold))
+                                              .foregroundStyle(accent)
+                                          MarqueeText(
+                                              .constant(activitySneakPeekText(defaultTitle: coordinator.sneakPeek.type == .codex ? "Codex" : "飞书")),
+                                              textColor: accent,
+                                              minDuration: 1,
+                                              frameWidth: max(0, geo.size.width - 20)
+                                          )
+                                      }
+                                  }
+                                  .padding(.bottom, 10)
+                              }
+                          }
                       }
                   }
               }
               .conditionalModifier(shouldFixSizeForSneakPeek()) { view in
                   view
                       .fixedSize()
+              }
+              .overlay(alignment: .topTrailing) {
+                  if shouldShowCodexClosedBadge {
+                      CodexMinimalisticView(status: codexManager.status, compact: true, action: openCodexPanel)
+                          .frame(width: 24, height: 24)
+                          .padding(.trailing, 10)
+                          .padding(.top, 4)
+                          .transition(.opacity.animation(.smooth(duration: 0.2)))
+                  }
+                  if shouldShowFeishuClosedBadge {
+                      FeishuMinimalisticView(status: feishuManager.status, compact: true, action: openFeishuPanel)
+                          .frame(width: 24, height: 24)
+                          .padding(.trailing, shouldShowCodexClosedBadge ? 38 : 10)
+                          .padding(.top, 4)
+                          .transition(.opacity.animation(.smooth(duration: 0.2)))
+                  }
               }
               .zIndex(2)
               
@@ -1084,6 +1096,10 @@ struct ContentView: View {
                                 NotchNotesView()
                             case .terminal:
                                 NotchTerminalView()
+                            case .codex:
+                                NotchCodexView()
+                            case .feishu:
+                                NotchFeishuView()
                             case .extensionExperience:
                                 if let payload = currentExtensionTabPayload() {
                                     ExtensionNotchExperienceTabView(payload: payload)
@@ -1143,6 +1159,53 @@ struct ContentView: View {
 
         guard !subtitle.isEmpty else { return title }
         return "\(title) • \(subtitle)"
+    }
+
+    private func activitySneakPeekText(defaultTitle: String) -> String {
+        let title = coordinator.sneakPeek.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let subtitle = coordinator.sneakPeek.subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if title.isEmpty { return subtitle.isEmpty ? defaultTitle : subtitle }
+        if subtitle.isEmpty { return title }
+        return "\(title) • \(subtitle)"
+    }
+
+    private var shouldShowCodexClosedBadge: Bool {
+        isCodexClosedActivityActive
+            && !hasVisibleExtensionClosedActivity
+    }
+
+    private var shouldShowFeishuClosedBadge: Bool {
+        isFeishuClosedActivityActive
+            && !hasVisibleExtensionClosedActivity
+    }
+
+    private var isCodexClosedActivityActive: Bool {
+        !isCurrentScreenExpansionVisible
+            && vm.notchState == .closed
+            && Defaults[.enableCodexFeature]
+            && (codexManager.status.state.isActive || codexManager.status.state == .error)
+            && !vm.hideOnClosed
+            && !lockScreenManager.isLocked
+    }
+
+    private var isFeishuClosedActivityActive: Bool {
+        !isCurrentScreenExpansionVisible
+            && vm.notchState == .closed
+            && Defaults[.enableFeishuNotifications]
+            && feishuManager.status.hasMention
+            && !vm.hideOnClosed
+            && !lockScreenManager.isLocked
+    }
+
+    private var hasVisibleExtensionClosedActivity: Bool {
+        let hasMusicMetadata = !musicManager.songTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !musicManager.artistName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasActiveMusicSnapshot = musicManager.isPlaying || (!musicManager.isPlayerIdle && hasMusicMetadata)
+        let musicPairingEligible = closedMusicPairingEligible(hasActiveMusicSnapshot: hasActiveMusicSnapshot)
+        let musicSecondary = resolveMusicSecondaryLiveActivity(isMusicPairingEligible: musicPairingEligible)
+        let extensionSecondaryPayloadID = extensionSecondaryPayloadID(for: musicSecondary)
+        if extensionSecondaryPayloadID != nil { return true }
+        return resolvedExtensionStandalonePayload(excluding: extensionSecondaryPayloadID) != nil
     }
 
     private let reminderTimeFormatter: DateFormatter = {
@@ -1297,17 +1360,8 @@ struct ContentView: View {
             return .reminder(reminder)
         }
 
-        if enableScreenRecordingDetection && (recordingManager.isRecording || !recordingManager.isRecorderIdle) {
-            return .recording
-        }
-
-        if enableDoNotDisturbDetection && showDoNotDisturbIndicator && doNotDisturbManager.isDoNotDisturbActive {
-            let mode = FocusModeType.resolve(identifier: doNotDisturbManager.currentFocusModeIdentifier, name: doNotDisturbManager.currentFocusModeName)
-            return .focus(mode)
-        }
-
-        if enableCapsLockIndicator && capsLockManager.isCapsLockActive {
-            return .capsLock(showLabel: showCapsLockLabel)
+        if isCodexClosedActivityActive {
+            return nil
         }
 
         if isMusicPairingEligible, let extensionPayload = resolvedExtensionMusicPayload() {
@@ -1768,7 +1822,8 @@ struct ContentView: View {
         let trailingWidth = ExtensionLayoutMetrics.trailingWidth(
             for: payload,
             baseWidth: leadingWidth,
-            maxWidth: leadingWidth + centerWidth * 0.6
+            maxWidth: leadingWidth + centerWidth * 0.6,
+            hidesTextContent: true
         )
         let totalWidth = leadingWidth + centerWidth + trailingWidth
         return ExtensionStandaloneLayout(
@@ -1856,6 +1911,22 @@ struct ContentView: View {
         withAnimation(.bouncy.speed(1.2)) {
             vm.open()
         }
+    }
+
+    private func openCodexPanel() {
+        coordinator.currentView = .codex
+        Task {
+            await codexManager.refreshOnce()
+        }
+        openNotch()
+    }
+
+    private func openFeishuPanel() {
+        coordinator.currentView = .feishu
+        Task {
+            await feishuManager.refreshOnce()
+        }
+        openNotch()
     }
 
     private func shouldShowClosedMusicWaveformPlayPauseOverlay(for secondary: MusicSecondaryLiveActivity?) -> Bool {
@@ -2274,7 +2345,10 @@ struct ContentView: View {
     }
 
     private func handleCloseScrollGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open, !vm.isHoveringCalendar, !vm.isScrollGestureActive else { return }
+        guard vm.notchState == .open,
+              coordinator.currentView != .codex,
+              !vm.isHoveringCalendar,
+              !vm.isScrollGestureActive else { return }
 
         withAnimation(.smooth) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20

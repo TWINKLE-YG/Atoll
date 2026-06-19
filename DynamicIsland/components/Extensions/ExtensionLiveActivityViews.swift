@@ -90,7 +90,7 @@ struct ExtensionMusicWingView: View {
     private var descriptor: AtollLiveActivityDescriptor { payload.descriptor }
     private var accentColor: Color { descriptor.accentColor.swiftUIColor }
     private var trailingRenderable: ExtensionTrailingRenderable {
-        resolvedExtensionTrailingRenderable(for: descriptor)
+        resolvedExtensionTrailingRenderable(for: descriptor, hidesTextContent: true)
     }
 
     var body: some View {
