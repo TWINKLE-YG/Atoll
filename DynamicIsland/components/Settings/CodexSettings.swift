@@ -45,7 +45,7 @@ struct CodexSettings: View {
             } header: {
                 Text("Codex")
             } footer: {
-                Text("当前版本中，Atoll 只读取 Codex 状态，不会发送消息、停止任务或批准操作。")
+                Text("当前版本中，\(Bundle.main.displayName) 只读取 Codex 状态，不会发送消息、停止任务或批准操作。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

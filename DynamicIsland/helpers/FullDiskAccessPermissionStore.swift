@@ -121,11 +121,11 @@ final class FullDiskAccessPermissionStore: ObservableObject {
     func requestAccessPrompt() {
 #if os(macOS)
         let alert = NSAlert()
-        alert.messageText = "Full Disk Access Required"
-        alert.informativeText = "Dynamic Island needs Full Disk Access to detect custom Focus indicators and power the Shelf. Click Continue to open Full Disk Access settings, then press the + button and select Dynamic Island (we'll reveal it in Finder for you)."
+        alert.messageText = "需要完全磁盘访问权限"
+        alert.informativeText = "\(Bundle.main.displayName) 需要“完全磁盘访问权限”读取系统通知数据库等本机状态。点击继续后，请在系统设置中添加当前 app；这不是“文件与文件夹”权限。"
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "Continue")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: "继续")
+        alert.addButton(withTitle: "取消")
 
         if alert.runModal() == .alertFirstButtonReturn {
             openSystemSettings()
@@ -143,7 +143,7 @@ final class FullDiskAccessPermissionStore: ObservableObject {
 #endif
     }
 
-    private func revealAppBundleInFinder() {
+    func revealAppBundleInFinder() {
 #if os(macOS)
         let bundleURL = Bundle.main.bundleURL
         NSWorkspace.shared.activateFileViewerSelecting([bundleURL])

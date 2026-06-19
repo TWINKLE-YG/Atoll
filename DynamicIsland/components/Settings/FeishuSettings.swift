@@ -45,7 +45,7 @@ struct FeishuSettings: View {
             } header: {
                 Text("飞书")
             } footer: {
-                Text("Atoll 只读取本机通知记录，用于识别飞书 @你 和私聊；不连接飞书开放平台，也不会发送消息。")
+                Text("\(Bundle.main.displayName) 只读取本机通知记录，用于识别飞书 @你 和私聊；不连接飞书开放平台，也不会发送消息。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -109,6 +109,12 @@ struct FeishuSettings: View {
                     Button("立即检查") {
                         Task { await manager.refreshOnce() }
                     }
+                    Button("打开完全磁盘访问") {
+                        FullDiskAccessPermissionStore.shared.openSystemSettings()
+                    }
+                    Button("定位 PulseDock") {
+                        FullDiskAccessPermissionStore.shared.revealAppBundleInFinder()
+                    }
                     Button("清空提醒") {
                         manager.markAllRead()
                     }
@@ -117,7 +123,7 @@ struct FeishuSettings: View {
             } header: {
                 Text("状态")
             } footer: {
-                Text("如果状态显示需要授权，请在系统设置中为 \(Bundle.main.displayName) 开启“完全磁盘访问权限”，然后重启 \(Bundle.main.displayName)。")
+                Text("飞书通知数据库需要“完全磁盘访问权限”，不是“文件与文件夹”。如果列表里没有 \(Bundle.main.displayName)，请点击“定位 PulseDock”，再把 app 拖进“完全磁盘访问权限”列表并开启，然后重启 \(Bundle.main.displayName)。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

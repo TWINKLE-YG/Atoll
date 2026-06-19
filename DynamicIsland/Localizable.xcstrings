@@ -8985,43 +8985,43 @@
         }
       }
     },
-    "Atoll needs Full Disk Access to read the system notification database. If Atoll does not appear in the list, use 'Reveal App in Finder' and drag it into the settings window." : {
+    "PulseDock needs Full Disk Access to read the system notification database. If PulseDock does not appear in the list, use 'Reveal App in Finder' and drag it into the settings window." : {
       "extractionState" : "stale",
       "localizations" : {
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atoll이 시스템 알림 데이터베이스를 읽으려면 '전체 디스크 접근 권한'이 필요합니다. 목록에 Atoll이 표시되지 않으면 'Finder에서 앱 보기'를 사용하여 앱을 설정 창으로 드래그하세요."
+            "value" : "PulseDock이 시스템 알림 데이터베이스를 읽으려면 '전체 디스크 접근 권한'이 필요합니다. 목록에 PulseDock이 표시되지 않으면 'Finder에서 앱 보기'를 사용하여 앱을 설정 창으로 드래그하세요."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atoll heeft volledige schijftoegang nodig om de database met systeemmeldingen te lezen. Als Atoll niet in de lijst verschijnt, gebruik dan 'Reveal App in Finder' en sleep het naar het instellingenvenster."
+            "value" : "PulseDock heeft volledige schijftoegang nodig om de database met systeemmeldingen te lezen. Als PulseDock niet in de lijst verschijnt, gebruik dan 'Reveal App in Finder' en sleep het naar het instellingenvenster."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Atoll precisa de Acesso Completo ao Disco para ler o banco de dados de notificações do sistema. Se o Atoll não aparecer na lista, use ‘Mostrar aplicativo no Finder' e arraste-o para a janela de configurações."
+            "value" : "O PulseDock precisa de Acesso Completo ao Disco para ler o banco de dados de notificações do sistema. Se o PulseDock não aparecer na lista, use ‘Mostrar aplicativo no Finder' e arraste-o para a janela de configurações."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Для чтения уведомлений нужен полный доступ к диску. Добавьте Atoll в настройках вручную, если его нет."
+            "value" : "Для чтения уведомлений нужен полный доступ к диску. Добавьте PulseDock в настройках вручную, если его нет."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atoll ต้องการ Full Disk Access เพื่ออ่านฐานข้อมูลการแจ้งเตือนของระบบ หาก Atoll ไม่ปรากฏในรายการ ใช้ 'เปิดตำแหน่งแอปใน Finder' แล้วลากไปในหน้าต่างการตั้งค่า"
+            "value" : "PulseDock ต้องการ Full Disk Access เพื่ออ่านฐานข้อมูลการแจ้งเตือนของระบบ หาก PulseDock ไม่ปรากฏในรายการ ใช้ 'เปิดตำแหน่งแอปใน Finder' แล้วลากไปในหน้าต่างการตั้งค่า"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atoll'un sistem bildirim veritabanını okuyabilmesi için Tam Disk Erişimi gerekir. Atoll listede görünmüyorsa 'Finder'da Uygulamayı Göster' seçeneğini kullanın ve uygulamayı ayarlar penceresine sürükleyin."
+            "value" : "PulseDock'un sistem bildirim veritabanını okuyabilmesi için Tam Disk Erişimi gerekir. PulseDock listede görünmüyorsa 'Finder'da Uygulamayı Göster' seçeneğini kullanın ve uygulamayı ayarlar penceresine sürükleyin."
           }
         },
         "zh-Hans" : {
