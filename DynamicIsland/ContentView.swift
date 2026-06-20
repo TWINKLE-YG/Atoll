@@ -395,10 +395,13 @@ struct ContentView: View {
     }
 
     /// Whether the fallback top-edge hover detector should run.
-    /// This is only needed when the notch is fully hidden off-screen and
-    /// regular `.onHover` hit-testing may not trigger reliably.
+    /// This catches cases where regular `.onHover` hit-testing may not
+    /// trigger reliably, especially when the closed island is very small
+    /// or hidden near the top screen edge.
     private var shouldUseHiddenEdgeHoverPolling: Bool {
-        shouldHideUntilHover && !lockScreenManager.isLocked
+        !lockScreenManager.isLocked
+            && vm.notchState == .closed
+            && (shouldHideUntilHover || Defaults[.openNotchOnHover])
     }
     
     /// Whether the LocalSend live activity should be shown
@@ -2005,7 +2008,7 @@ struct ContentView: View {
                     }
                 }
 
-                try? await Task.sleep(for: .milliseconds(50))
+                try? await Task.sleep(for: .milliseconds(120))
             }
 
             self.hiddenEdgeHoverPollingTask = nil

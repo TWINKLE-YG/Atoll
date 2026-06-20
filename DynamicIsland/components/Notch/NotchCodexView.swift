@@ -23,7 +23,6 @@ import SwiftUI
 private enum CodexPanelTypography {
     static let headerTitle: CGFloat = 13
     static let headerStatus: CGFloat = 10
-    static let pageTitle: CGFloat = 18
     static let sectionTitle: CGFloat = 10
     static let body: CGFloat = 11
     static let compact: CGFloat = 9
@@ -120,21 +119,25 @@ struct NotchCodexView: View {
         switch manager.status.sourceAvailability {
         case .available:
             VStack(alignment: .leading, spacing: 8) {
-                Text(manager.status.displayTitle)
-                    .font(.system(size: CodexPanelTypography.pageTitle, weight: .semibold))
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack(alignment: .top, spacing: 8) {
+                    radarCorePanel
+                        .frame(width: 158)
+                    sessionOverviewPanel
+                }
 
-                sessionOverviewPanel
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        stagePanel
+                        healthPanel
+                    }
+                    .frame(width: 188)
 
-                stagePanel
-
-                previewPanel
-
-                taskReportPanel
-
-                healthPanel
+                    VStack(alignment: .leading, spacing: 8) {
+                        previewPanel
+                        taskReportPanel
+                    }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
 
                 timelinePanel
 
@@ -189,12 +192,12 @@ struct NotchCodexView: View {
     @ViewBuilder
     private var sessionOverviewPanel: some View {
         let sessions = manager.status.relatedSessions
-        if sessions.count > 1 {
+        if !sessions.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
-                    Label("会话队列", systemImage: "rectangle.stack")
+                    Label("会话雷达", systemImage: "scope")
                         .font(.system(size: CodexPanelTypography.sectionTitle, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(manager.status.state.accentColor)
 
                     Spacer(minLength: 0)
 
@@ -203,12 +206,18 @@ struct NotchCodexView: View {
                         .foregroundStyle(manager.status.activeSessionCount > 1 ? .orange : .secondary)
                 }
 
-                ForEach(sessions.prefix(clampedSessionListLimit)) { session in
-                    sessionRow(session)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(Array(sessions.prefix(clampedSessionListLimit))) { session in
+                            sessionRadarCard(session)
+                        }
+                    }
+                    .padding(.vertical, 1)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 8)
+            .frame(height: 98, alignment: .topLeading)
+            .padding(.vertical, 9)
             .padding(.horizontal, 10)
             .background(Color.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
             .overlay(
@@ -222,56 +231,124 @@ struct NotchCodexView: View {
         min(max(sessionListLimit, 1), 6)
     }
 
-    private func sessionRow(_ session: CodexSessionSummary) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            Circle()
-                .fill(session.state.accentColor)
-                .frame(width: 6, height: 6)
-                .padding(.top, 5)
+    private var radarCorePanel: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .stroke(manager.status.state.accentColor.opacity(0.18), lineWidth: 1)
+                    Circle()
+                        .fill(manager.status.state.accentColor.opacity(0.1))
+                    Image(systemName: manager.status.state.systemImage)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(manager.status.state.accentColor)
+                }
+                .frame(width: 34, height: 34)
 
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(session.displayTitle)
-                        .font(.system(size: CodexPanelTypography.body, weight: session.isPrimary ? .semibold : .medium))
-                        .foregroundStyle(.primary.opacity(session.isPrimary ? 0.95 : 0.78))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-
-                    if session.isPrimary {
-                        Text("当前")
-                            .font(.system(size: CodexPanelTypography.badge, weight: .bold))
-                            .foregroundStyle(manager.status.state.accentColor)
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 1)
-                            .background(manager.status.state.accentColor.opacity(0.14), in: Capsule())
-                    }
-
-                    Spacer(minLength: 0)
-
-                    Text(sessionTimeText(session))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(manager.status.state.label)
+                        .font(.system(size: CodexPanelTypography.body, weight: .semibold))
+                        .foregroundStyle(manager.status.state.accentColor)
+                    Text(manager.status.taskStage.label)
                         .font(.system(size: CodexPanelTypography.compact, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
+            }
 
-                HStack(spacing: 6) {
-                    Label(session.state.label, systemImage: session.state.systemImage)
-                        .font(.system(size: CodexPanelTypography.compact, weight: .medium))
-                        .foregroundStyle(session.state.accentColor)
+            Divider()
+                .overlay(Color.white.opacity(0.08))
 
-                    Text(session.taskStage.label)
-                        .font(.system(size: CodexPanelTypography.compact, weight: .medium))
-                        .foregroundStyle(.secondary)
-
-                    if let summary = session.displaySummary(privacyMode: privacyMode) {
-                        Text(summary)
-                            .font(.system(size: CodexPanelTypography.compact))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                    }
+            HStack(spacing: 10) {
+                radarMetric(title: "活跃", value: "\(manager.status.activeSessionCount)")
+                radarMetric(title: "最近", value: "\(manager.status.relatedSessions.count)")
+                if let elapsed = manager.status.elapsedWorkingTime {
+                    radarMetric(title: "耗时", value: formatElapsed(elapsed))
                 }
             }
         }
+        .frame(height: 98, alignment: .topLeading)
+        .padding(.vertical, 9)
+        .padding(.horizontal, 10)
+        .background(manager.status.state.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .stroke(manager.status.state.accentColor.opacity(0.18), lineWidth: 1)
+        )
+    }
+
+    private func radarMetric(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(value)
+                .font(.system(size: CodexPanelTypography.body, weight: .bold))
+                .foregroundStyle(.primary.opacity(0.9))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(title)
+                .font(.system(size: CodexPanelTypography.badge, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func sessionRadarCard(_ session: CodexSessionSummary) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(session.state.accentColor)
+                    .frame(width: session.state.isActive ? 7 : 6, height: session.state.isActive ? 7 : 6)
+                    .shadow(color: session.state.accentColor.opacity(session.state.isActive ? 0.75 : 0.15), radius: session.state.isActive ? 5 : 1)
+
+                Text(session.state.label)
+                    .font(.system(size: CodexPanelTypography.compact, weight: .semibold))
+                    .foregroundStyle(session.state.accentColor)
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+
+                if session.isPrimary {
+                    Text("当前")
+                        .font(.system(size: CodexPanelTypography.badge, weight: .bold))
+                        .foregroundStyle(manager.status.state.accentColor)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(manager.status.state.accentColor.opacity(0.14), in: Capsule())
+                }
+            }
+
+            Text(session.displayTitle)
+                .font(.system(size: CodexPanelTypography.body, weight: session.isPrimary ? .semibold : .medium))
+                .foregroundStyle(.primary.opacity(session.isPrimary ? 0.94 : 0.78))
+                .lineLimit(1)
+                .truncationMode(.tail)
+
+            HStack(spacing: 5) {
+                Image(systemName: session.taskStage.systemImage)
+                    .font(.system(size: CodexPanelTypography.compact, weight: .semibold))
+                Text(session.taskStage.label)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                Text(sessionTimeText(session))
+                    .lineLimit(1)
+            }
+            .font(.system(size: CodexPanelTypography.compact, weight: .medium))
+            .foregroundStyle(.secondary)
+
+            if let summary = session.displaySummary(privacyMode: privacyMode) {
+                Text(summary)
+                    .font(.system(size: CodexPanelTypography.compact))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+        }
+        .frame(width: 154, height: 64, alignment: .topLeading)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 9)
+        .background(Color.black.opacity(0.28), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .stroke(session.state.accentColor.opacity(session.isPrimary ? 0.32 : 0.14), lineWidth: 1)
+        )
     }
 
     private var stagePanel: some View {
