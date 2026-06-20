@@ -30,6 +30,12 @@ private enum CodexPanelTypography {
     static let preview: CGFloat = 12
 }
 
+private enum CodexPanelColor {
+    static let primaryText = Color.white.opacity(0.92)
+    static let secondaryText = Color.white.opacity(0.58)
+    static let tertiaryText = Color.white.opacity(0.38)
+}
+
 struct NotchCodexView: View {
     @ObservedObject private var manager = CodexManager.shared
     @Default(.codexPrivacyMode) private var privacyMode
@@ -53,6 +59,7 @@ struct NotchCodexView: View {
         .padding(.bottom, 12)
         .frame(maxWidth: 620, maxHeight: .infinity, alignment: .topLeading)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .foregroundStyle(CodexPanelColor.primaryText)
         .task {
             manager.start()
             await manager.refreshOnce()
@@ -71,6 +78,7 @@ struct NotchCodexView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Codex")
                     .font(.system(size: CodexPanelTypography.headerTitle, weight: .semibold))
+                    .foregroundStyle(CodexPanelColor.primaryText)
                 HStack(spacing: 6) {
                     Circle()
                         .fill(manager.status.state.accentColor)
@@ -86,7 +94,7 @@ struct NotchCodexView: View {
             if let lastUpdatedAt = manager.status.lastUpdatedAt {
                 Text(freshnessText(for: lastUpdatedAt))
                     .font(.system(size: CodexPanelTypography.compact, weight: .medium))
-                    .foregroundStyle(isStale(lastUpdatedAt) ? .orange : .secondary)
+                    .foregroundStyle(isStale(lastUpdatedAt) ? .orange : CodexPanelColor.secondaryText)
             }
 
             headerIconButton(
@@ -121,7 +129,7 @@ struct NotchCodexView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .top, spacing: 8) {
                     radarCorePanel
-                        .frame(width: 158)
+                    .frame(width: 150)
                     sessionOverviewPanel
                 }
 
@@ -130,7 +138,7 @@ struct NotchCodexView: View {
                         stagePanel
                         healthPanel
                     }
-                    .frame(width: 188)
+                    .frame(width: 184)
 
                     VStack(alignment: .leading, spacing: 8) {
                         previewPanel
@@ -173,7 +181,7 @@ struct NotchCodexView: View {
             Spacer(minLength: 0)
         }
         .font(.system(size: CodexPanelTypography.compact, weight: .medium))
-        .foregroundStyle(.secondary)
+        .foregroundStyle(CodexPanelColor.secondaryText)
     }
 
     private func footerItem(icon: String, text: String) -> some View {
@@ -203,7 +211,7 @@ struct NotchCodexView: View {
 
                     Text(sessionCountText)
                         .font(.system(size: CodexPanelTypography.compact, weight: .semibold))
-                        .foregroundStyle(manager.status.activeSessionCount > 1 ? .orange : .secondary)
+                        .foregroundStyle(manager.status.activeSessionCount > 1 ? .orange : CodexPanelColor.secondaryText)
                 }
 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -216,8 +224,8 @@ struct NotchCodexView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: 98, alignment: .topLeading)
-            .padding(.vertical, 9)
+            .frame(height: 76, alignment: .topLeading)
+            .padding(.vertical, 7)
             .padding(.horizontal, 10)
             .background(Color.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
             .overlay(
@@ -232,7 +240,7 @@ struct NotchCodexView: View {
     }
 
     private var radarCorePanel: some View {
-        VStack(alignment: .leading, spacing: 7) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 ZStack {
                     Circle()
@@ -251,14 +259,14 @@ struct NotchCodexView: View {
                         .foregroundStyle(manager.status.state.accentColor)
                     Text(manager.status.taskStage.label)
                         .font(.system(size: CodexPanelTypography.compact, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(CodexPanelColor.secondaryText)
                 }
             }
 
             Divider()
                 .overlay(Color.white.opacity(0.08))
 
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 radarMetric(title: "活跃", value: "\(manager.status.activeSessionCount)")
                 radarMetric(title: "最近", value: "\(manager.status.relatedSessions.count)")
                 if let elapsed = manager.status.elapsedWorkingTime {
@@ -266,8 +274,8 @@ struct NotchCodexView: View {
                 }
             }
         }
-        .frame(height: 98, alignment: .topLeading)
-        .padding(.vertical, 9)
+        .frame(height: 76, alignment: .topLeading)
+        .padding(.vertical, 7)
         .padding(.horizontal, 10)
         .background(manager.status.state.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
         .overlay(
@@ -280,12 +288,12 @@ struct NotchCodexView: View {
         VStack(alignment: .leading, spacing: 1) {
             Text(value)
                 .font(.system(size: CodexPanelTypography.body, weight: .bold))
-                .foregroundStyle(.primary.opacity(0.9))
+                .foregroundStyle(CodexPanelColor.primaryText)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
             Text(title)
                 .font(.system(size: CodexPanelTypography.badge, weight: .medium))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CodexPanelColor.secondaryText)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -317,7 +325,7 @@ struct NotchCodexView: View {
 
             Text(session.displayTitle)
                 .font(.system(size: CodexPanelTypography.body, weight: session.isPrimary ? .semibold : .medium))
-                .foregroundStyle(.primary.opacity(session.isPrimary ? 0.94 : 0.78))
+                .foregroundStyle(session.isPrimary ? CodexPanelColor.primaryText : CodexPanelColor.primaryText.opacity(0.78))
                 .lineLimit(1)
                 .truncationMode(.tail)
 
@@ -331,18 +339,18 @@ struct NotchCodexView: View {
                     .lineLimit(1)
             }
             .font(.system(size: CodexPanelTypography.compact, weight: .medium))
-            .foregroundStyle(.secondary)
+            .foregroundStyle(CodexPanelColor.secondaryText)
 
             if let summary = session.displaySummary(privacyMode: privacyMode) {
                 Text(summary)
                     .font(.system(size: CodexPanelTypography.compact))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CodexPanelColor.secondaryText)
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
         }
-        .frame(width: 154, height: 64, alignment: .topLeading)
-        .padding(.vertical, 8)
+        .frame(width: 152, height: 50, alignment: .topLeading)
+        .padding(.vertical, 7)
         .padding(.horizontal, 9)
         .background(Color.black.opacity(0.28), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
         .overlay(
@@ -361,11 +369,11 @@ struct NotchCodexView: View {
 
             Text("当前阶段")
                 .font(.system(size: CodexPanelTypography.compact, weight: .medium))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CodexPanelColor.secondaryText)
 
             Text(manager.status.taskStage.label)
                 .font(.system(size: CodexPanelTypography.body, weight: .semibold))
-                .foregroundStyle(.primary.opacity(0.92))
+                .foregroundStyle(CodexPanelColor.primaryText)
 
             Spacer(minLength: 0)
         }
@@ -390,7 +398,7 @@ struct NotchCodexView: View {
                             .padding(.top, 5)
                         Text(bullet)
                             .font(.system(size: CodexPanelTypography.compact))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(CodexPanelColor.secondaryText)
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
@@ -419,7 +427,7 @@ struct NotchCodexView: View {
                     .foregroundStyle(health.level.accentColor)
                 Text(health.detail)
                     .font(.system(size: CodexPanelTypography.compact))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CodexPanelColor.secondaryText)
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
@@ -441,7 +449,7 @@ struct NotchCodexView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Label("快速时间线", systemImage: "list.bullet.indent")
                     .font(.system(size: CodexPanelTypography.sectionTitle, weight: .semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CodexPanelColor.secondaryText)
 
                 ForEach(events.reversed()) { event in
                     HStack(alignment: .top, spacing: 8) {
@@ -454,18 +462,18 @@ struct NotchCodexView: View {
                             HStack(spacing: 6) {
                                 Text(event.title)
                                     .font(.system(size: CodexPanelTypography.body, weight: .medium))
-                                    .foregroundStyle(.primary.opacity(0.9))
+                                    .foregroundStyle(CodexPanelColor.primaryText)
                                     .lineLimit(1)
 
                                 Text(freshnessText(for: event.timestamp))
                                     .font(.system(size: CodexPanelTypography.compact, weight: .medium))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(CodexPanelColor.secondaryText)
                             }
 
                             if let detail = event.detail, !detail.isEmpty {
                                 Text(detail)
                                     .font(.system(size: CodexPanelTypography.compact))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(CodexPanelColor.secondaryText)
                                     .lineLimit(1)
                                     .truncationMode(.tail)
                             }
@@ -489,7 +497,7 @@ struct NotchCodexView: View {
                 previewHeader(title: "Codex 回复", icon: "text.bubble", canCopy: true)
                 Text(assistantText)
                     .font(.system(size: CodexPanelTypography.preview))
-                    .foregroundStyle(.primary.opacity(0.92))
+                    .foregroundStyle(CodexPanelColor.primaryText)
                     .lineLimit(8)
                     .truncationMode(.tail)
                     .textSelection(.enabled)
@@ -507,7 +515,7 @@ struct NotchCodexView: View {
                 )
                 Text(summary)
                     .font(.system(size: CodexPanelTypography.preview, weight: .medium))
-                    .foregroundStyle(.primary.opacity(0.78))
+                    .foregroundStyle(CodexPanelColor.primaryText.opacity(0.82))
                     .lineLimit(5)
                     .truncationMode(.tail)
             }
@@ -518,7 +526,7 @@ struct NotchCodexView: View {
         } else {
             Text("内容已隐藏")
                 .font(.system(size: CodexPanelTypography.body))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CodexPanelColor.secondaryText)
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -538,7 +546,7 @@ struct NotchCodexView: View {
                 } label: {
                     Image(systemName: copiedAt == nil ? "doc.on.doc" : "checkmark")
                         .font(.system(size: CodexPanelTypography.compact, weight: .semibold))
-                        .foregroundStyle(copiedAt == nil ? Color.secondary : Color.green)
+                        .foregroundStyle(copiedAt == nil ? CodexPanelColor.secondaryText : Color.green)
                         .frame(width: 20, height: 20)
                         .background(Color.white.opacity(0.06), in: Circle())
                 }
@@ -554,7 +562,7 @@ struct NotchCodexView: View {
                 .font(.system(size: CodexPanelTypography.headerTitle, weight: .semibold))
             Text(manager.status.sourceAvailability.detail)
                 .font(.system(size: CodexPanelTypography.body))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CodexPanelColor.secondaryText)
                 .lineLimit(3)
         }
     }
