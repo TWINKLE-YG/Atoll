@@ -46,7 +46,6 @@ struct NotchCodexView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
-            header
             ScrollView(.vertical, showsIndicators: true) {
                 statusBody
                     .padding(.bottom, 8)
@@ -55,7 +54,7 @@ struct NotchCodexView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .padding(.horizontal, 18)
-        .padding(.top, 12)
+        .padding(.top, 10)
         .padding(.bottom, 12)
         .frame(maxWidth: 620, maxHeight: .infinity, alignment: .topLeading)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -69,57 +68,6 @@ struct NotchCodexView: View {
                 await manager.refreshOnce()
             }
         }
-    }
-
-    private var header: some View {
-        HStack(spacing: 10) {
-            statusGlyph
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Codex")
-                    .font(.system(size: CodexPanelTypography.headerTitle, weight: .semibold))
-                    .foregroundStyle(CodexPanelColor.primaryText)
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(manager.status.state.accentColor)
-                        .frame(width: 5, height: 5)
-                    Text(manager.status.state.label)
-                        .font(.system(size: CodexPanelTypography.headerStatus, weight: .medium))
-                        .foregroundStyle(manager.status.state.accentColor)
-                }
-            }
-
-            Spacer(minLength: 0)
-
-            if let lastUpdatedAt = manager.status.lastUpdatedAt {
-                Text(freshnessText(for: lastUpdatedAt))
-                    .font(.system(size: CodexPanelTypography.compact, weight: .medium))
-                    .foregroundStyle(isStale(lastUpdatedAt) ? .orange : CodexPanelColor.secondaryText)
-            }
-
-            headerIconButton(
-                systemName: isRefreshing ? "arrow.triangle.2.circlepath.circle.fill" : "arrow.clockwise",
-                help: "立即刷新"
-            ) {
-                refreshNow()
-            }
-
-            headerIconButton(systemName: "arrow.up.forward.app", help: "打开 Codex") {
-                CodexAppLauncher.openCodex()
-            }
-        }
-    }
-
-    private var statusGlyph: some View {
-        Image(systemName: manager.status.state.systemImage)
-            .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(manager.status.state.accentColor)
-            .frame(width: 28, height: 28)
-            .background(manager.status.state.accentColor.opacity(0.14), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                    .stroke(manager.status.state.accentColor.opacity(0.22), lineWidth: 1)
-            )
     }
 
     @ViewBuilder
@@ -209,9 +157,26 @@ struct NotchCodexView: View {
 
                     Spacer(minLength: 0)
 
+                    if let lastUpdatedAt = manager.status.lastUpdatedAt {
+                        Text(freshnessText(for: lastUpdatedAt))
+                            .font(.system(size: CodexPanelTypography.compact, weight: .semibold))
+                            .foregroundStyle(isStale(lastUpdatedAt) ? .orange : CodexPanelColor.secondaryText)
+                    }
+
                     Text(sessionCountText)
                         .font(.system(size: CodexPanelTypography.compact, weight: .semibold))
                         .foregroundStyle(manager.status.activeSessionCount > 1 ? .orange : CodexPanelColor.secondaryText)
+
+                    headerIconButton(
+                        systemName: isRefreshing ? "arrow.triangle.2.circlepath.circle.fill" : "arrow.clockwise",
+                        help: "立即刷新"
+                    ) {
+                        refreshNow()
+                    }
+
+                    headerIconButton(systemName: "arrow.up.forward.app", help: "打开 Codex") {
+                        CodexAppLauncher.openCodex()
+                    }
                 }
 
                 ScrollView(.horizontal, showsIndicators: false) {
