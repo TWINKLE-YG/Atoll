@@ -77,7 +77,7 @@ struct NotchCodexView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .top, spacing: 8) {
                     radarCorePanel
-                    .frame(width: 150)
+                    .frame(width: 184)
                     sessionOverviewPanel
                 }
 
@@ -149,14 +149,18 @@ struct NotchCodexView: View {
     private var sessionOverviewPanel: some View {
         let sessions = manager.status.relatedSessions
         if !sessions.isEmpty {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Label("会话雷达", systemImage: "scope")
-                        .font(.system(size: CodexPanelTypography.sectionTitle, weight: .semibold))
-                        .foregroundStyle(manager.status.state.accentColor)
+            HStack(alignment: .top, spacing: 8) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(Array(sessions.prefix(clampedSessionListLimit))) { session in
+                            sessionRadarCard(session)
+                        }
+                    }
+                    .padding(.vertical, 1)
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
 
-                    Spacer(minLength: 0)
-
+                VStack(alignment: .trailing, spacing: 6) {
                     if let lastUpdatedAt = manager.status.lastUpdatedAt {
                         Text(freshnessText(for: lastUpdatedAt))
                             .font(.system(size: CodexPanelTypography.compact, weight: .semibold))
@@ -167,29 +171,23 @@ struct NotchCodexView: View {
                         .font(.system(size: CodexPanelTypography.compact, weight: .semibold))
                         .foregroundStyle(manager.status.activeSessionCount > 1 ? .orange : CodexPanelColor.secondaryText)
 
-                    headerIconButton(
-                        systemName: isRefreshing ? "arrow.triangle.2.circlepath.circle.fill" : "arrow.clockwise",
-                        help: "立即刷新"
-                    ) {
-                        refreshNow()
-                    }
-
-                    headerIconButton(systemName: "arrow.up.forward.app", help: "打开 Codex") {
-                        CodexAppLauncher.openCodex()
-                    }
-                }
-
-                ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(Array(sessions.prefix(clampedSessionListLimit))) { session in
-                            sessionRadarCard(session)
+                        headerIconButton(
+                            systemName: isRefreshing ? "arrow.triangle.2.circlepath.circle.fill" : "arrow.clockwise",
+                            help: "立即刷新"
+                        ) {
+                            refreshNow()
+                        }
+
+                        headerIconButton(systemName: "arrow.up.forward.app", help: "打开 Codex") {
+                            CodexAppLauncher.openCodex()
                         }
                     }
-                    .padding(.vertical, 1)
                 }
+                .frame(width: 88, alignment: .topTrailing)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: 76, alignment: .topLeading)
+            .frame(height: 66, alignment: .topLeading)
             .padding(.vertical, 7)
             .padding(.horizontal, 10)
             .background(Color.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
@@ -239,7 +237,7 @@ struct NotchCodexView: View {
                 }
             }
         }
-        .frame(height: 76, alignment: .topLeading)
+        .frame(height: 66, alignment: .topLeading)
         .padding(.vertical, 7)
         .padding(.horizontal, 10)
         .background(manager.status.state.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
@@ -315,7 +313,7 @@ struct NotchCodexView: View {
             }
         }
         .frame(width: 152, height: 50, alignment: .topLeading)
-        .padding(.vertical, 7)
+        .padding(.vertical, 6)
         .padding(.horizontal, 9)
         .background(Color.black.opacity(0.28), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
         .overlay(
