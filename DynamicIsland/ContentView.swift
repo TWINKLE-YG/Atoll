@@ -1036,7 +1036,7 @@ struct ContentView: View {
                               }
                           }
                           else if coordinator.sneakPeek.type == .codex || coordinator.sneakPeek.type == .feishu {
-                              if !vm.hideOnClosed && activeSneakPeekStyle == .standard {
+                              if vm.notchState == .closed && !vm.hideOnClosed && activeSneakPeekStyle == .standard {
                                   GeometryReader { geo in
                                       let accent = (coordinator.sneakPeek.accentColor ?? .cyan).ensureMinimumBrightness(factor: 0.7)
                                       HStack(spacing: 6) {
